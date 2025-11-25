@@ -21,8 +21,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 ### Active Specifications
 - Check `.kiro/specs/` for active specifications
 - Use `/kiro:spec-status [feature-name]` to check progress
-- `receipts-management`: Receipts management system
-- `receipts-management-3`: Receipts management system
+- `receipts-workflow`: Receipts workflow system
 
 ## Development Guidelines
 - Think in English, generate responses in English
