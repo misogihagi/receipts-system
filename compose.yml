@@ -5,38 +5,21 @@ services:
     volumes:
       - redisdata:/data
   webserver:
-    # Paperless-ngxのメインサービス
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     container_name: paperless-webserver
     restart: unless-stopped
     ports:
-      # ホスト:コンテナのポートマッピング (デフォルトは8000)
       - "8000:8000"
     volumes:
-      # 永続化データ (SQLiteデータベースファイル、ドキュメントなど)
       - data:/usr/src/paperless/data
       - media:/usr/src/paperless/media
-      # ドキュメントを取り込むためのフォルダ (ホストの'./consume'をマウント)
       - ./consume:/usr/src/paperless/consume
-      # エクスポートのためのフォルダ (オプション)
       - ./export:/usr/src/paperless/export
-    env_file:
-      # 環境変数を外部ファイルから読み込む
-      - .env
     environment:
-      # SQLiteを使用する場合、以下のDB設定は**不要**です。
-      # Paperless-ngxはデフォルトでSQLiteを使用します。
-      
-      # Redisブローカー接続設定を無効化（または設定しない）
-      # デフォルトではブローカーなしで動作します。
-      
-      # その他のPaperless-ngx設定
-      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
-      PAPERLESS_TIME_ZONE: Asia/Tokyo # あなたのタイムゾーンに変更してください
-      PAPERLESS_OCR_LANGUAGE: jpn+eng # OCRに使用する言語
+      PAPERLESS_TIME_ZONE: Asia/Tokyo
+      PAPERLESS_OCR_LANGUAGE: jpn+eng
 
 volumes:
-  # Dockerが管理する名前付きボリューム
   data:
   media:
   redisdata:
