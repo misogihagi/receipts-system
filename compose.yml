@@ -1,4 +1,9 @@
 services:
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
   webserver:
     # Paperless-ngxのメインサービス
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
@@ -34,3 +39,5 @@ volumes:
   # Dockerが管理する名前付きボリューム
   data:
   media:
+  redisdata:
+
