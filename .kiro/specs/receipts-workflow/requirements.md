@@ -6,6 +6,29 @@ workflow: 1. scan receipts as tif 2. convert to png file 3. ocr png file 4. conv
 
 ## Requirements
 
+### 1.
+- images/
+ファイルのスキャン: images/ ディレクトリ内の .zip ファイルをリストアップする。
+
+解凍処理: 一時フォルダ（temp/ など）を作成し、ファイルを解凍する。
+
+データの読み込み: 解凍されたファイル（画像やメタデータ）を読み込み、APIが受け取れる形式（Base64変換やバイナリ形式）に整形する。
+画像はハッシュ値を出し状態は例の通り、ハッシュマップとして保持する。
+
+API送信: requests などのライブラリを使用してAPIにPOSTする。
+
+後処理: 送信が成功したZIPファイルを「処理済みフォルダ」に移動、または削除する。
+
+# status.yaml のイメージ
+processed_files:
+  aaabbbccc:
+    status: "success"
+    processed_at: "2024-05-20 10:00:00"
+  bbbcccddd:
+    status: "failed"
+    message: "API Timeout"
+    processed_at: "2024-05-20 10:05:00"
+
 ### 1. Image Conversion (TIFF to PNG)
 - The system must convert TIFF images to PNG format using the Pillow library.
 - Pillow version: [Specify version]
