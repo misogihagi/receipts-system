@@ -14,6 +14,7 @@ workflow: 1. scan receipts as tif 2. convert to png file 3. ocr png file 4. conv
 
 データの読み込み: 解凍されたファイル（画像やメタデータ）を読み込み、APIが受け取れる形式（Base64変換やバイナリ形式）に整形する。
 画像はハッシュ値を出し状態は例の通り、ハッシュマップとして保持する。
+画像はtiff形式なので容量削減のためwebpに変換する。
 
 API送信: requests などのライブラリを使用してAPIにPOSTする。
 
