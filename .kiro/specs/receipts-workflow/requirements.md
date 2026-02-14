@@ -16,7 +16,9 @@ workflow: 1. scan receipts as tif 2. convert to png file 3. ocr png file 4. conv
 画像はハッシュ値を出し状態は例の通り、ハッシュマップとして保持する。
 画像はtiff形式なので容量削減のためwebpに変換する。
 
-API送信: requests などのライブラリを使用してAPIにPOSTする。
+APIを使わない格納：APIを使うと余計なOCRの処理やカスタマイズができないので直接処理する
+データベースの直接編集
+解析済みのファイルの配置
 
 後処理: 送信が成功したZIPファイルを「処理済みフォルダ」に移動、または削除する。
 
