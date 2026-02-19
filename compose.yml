@@ -11,10 +11,10 @@ services:
     ports:
       - "8765:8000"
     volumes:
-      - ./data:/usr/src/paperless/data
-      - ./media:/usr/src/paperless/media
-      - ./consume:/usr/src/paperless/consume
-      - ./export:/usr/src/paperless/export
+      - ./data/docker/data:/usr/src/paperless/data
+      - ./data/docker/media:/usr/src/paperless/media
+      - ./data/docker/consume:/usr/src/paperless/consume
+      - ./data/docker/export:/usr/src/paperless/export
     environment:
       PAPERLESS_TIME_ZONE: Asia/Tokyo
       PAPERLESS_OCR_LANGUAGE: jpn+eng
