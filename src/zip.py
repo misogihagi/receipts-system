@@ -8,6 +8,7 @@ import requests
 import yaml
 from datetime import datetime
 from pathlib import Path
+from paddleocr import PaddleOCR
 
 # --- 設定 ---
 IMAGE_DIR = Path("images")
@@ -42,6 +43,9 @@ def save_status(status_data):
     with open(STATUS_FILE, "w", encoding="utf-8") as f:
         yaml.dump(status_data, f, allow_unicode=True, sort_keys=False)
 
+def ocr(img_file):
+    ocr = PaddleOCR(lang="japan")
+    return ocr.predict(img_file)
 
 def process_zip():
     status_data = load_status()
