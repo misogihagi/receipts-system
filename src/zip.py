@@ -6,6 +6,9 @@ import hashlib
 import base64
 import requests
 import yaml
+import fitz
+import json
+import numpy as np
 from datetime import datetime
 from pathlib import Path
 from paddleocr import PaddleOCR
@@ -46,6 +49,54 @@ def save_status(status_data):
 def ocr(img_file):
     ocr = PaddleOCR(lang="japan")
     return ocr.predict(img_file)
+
+def create_pdf(data, image_path, pdf_path):
+    polygons = data["rec_boxes"]
+    texts = data["rec_texts"]
+
+    if not os.path.exists(image_path):
+        print(f"Error: 画像ファイルが見つかりません: {image_path}")
+        return
+
+    doc = fitz.open()
+    img_doc = fitz.open(image_path)
+
+    def px_to_pt(px):
+        dpi = img_doc[0].get_image_info()[0].get("xres", 72)
+        return px * (72 / dpi)
+
+    # 画像のサイズに合わせてページを作成
+    img_rect = img_doc[0].rect
+    page = doc.new_page(width=img_rect.width, height=img_rect.height)
+
+    page.insert_image(img_rect, filename=image_path)
+
+    # 透明テキストの埋め込み
+
+    for text, poly in zip(texts, polygons):
+        if not text.strip():
+            continue
+
+        # poly[0]が左上、poly[2]が右下の想定
+        x0, y0 = (poly[0], poly[1])
+        x2, y2 = (poly[2], poly[3])
+
+        # テキストの高さからフォントサイズを決定
+        line_height = abs(y2 - y0)
+        font_size = line_height * 0.75  # 調整係数
+
+        # insert_textのポイントは(x, y)で、yはベースライン（文字の下端）
+        # そのため、y2（矩形の下端）に近い位置を指定する
+        page.insert_text(
+            (px_to_pt(x0), px_to_pt(y2 - (line_height * 0.1))),
+            text,
+            fontsize=px_to_pt(font_size),
+            render_mode=3,  # 0:塗りつぶし, 3:透明
+        )
+
+    doc.save(pdf_path)
+    doc.close()
+    img_doc.close()
 
 def process_zip():
     status_data = load_status()
