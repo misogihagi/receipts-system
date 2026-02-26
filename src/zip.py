@@ -9,6 +9,8 @@ import yaml
 import fitz
 import json
 import numpy as np
+import torch
+from transformers import pipeline
 from datetime import datetime
 from pathlib import Path
 from paddleocr import PaddleOCR
@@ -97,6 +99,55 @@ def create_pdf(data, image_path, pdf_path):
     doc.save(pdf_path)
     doc.close()
     img_doc.close()
+
+
+def generate_title(content):
+    pipe = pipeline(
+        "text-generation",
+        model="google/gemma-2-2b-jpn-it",
+        model_kwargs={"torch_dtype": torch.bfloat16},
+        device="cpu",  # replace with "mps" to run on a Mac device
+    )
+
+    messages = [
+        {
+            "role": "user",
+            "content": "以下はレシートのOCR結果です。これを見て「どこで」「何を」買ったのかひと目でわかるタイトルをプレーンテキストで30文字以内で出力してください。\n"
+            + content,
+        },
+    ]
+
+    outputs = pipe(messages, return_full_text=False)
+    assistant_response = outputs[0]["generated_text"].strip()
+    return assistant_response
+
+
+def predict_date(content):
+
+    for _ in range(10):
+        pipe = pipeline(
+            "text-generation",
+            model="google/gemma-2-2b-jpn-it",
+            model_kwargs={"torch_dtype": torch.bfloat16},
+            device="cpu",  # replace with "mps" to run on a Mac device
+        )
+
+        messages = [
+            {
+                "role": "user",
+                "content": "以下はレシートのOCR結果です。これを見ていつのレシートかを「YYYY年MM月DD日」形式で出力してください。\n"
+                + content,
+            },
+        ]
+
+        outputs = pipe(messages, return_full_text=False)
+        assistant_response = outputs[0]["generated_text"].strip()
+        try:
+            date = datetime.strptime(assistant_response, "%Y年%m月%d日").date()
+            return date
+        except:
+            pass
+
 
 def process_zip():
     status_data = load_status()
