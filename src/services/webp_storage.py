@@ -2,7 +2,10 @@ import os
 import logging
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def store_webp_file(webp_filepath: str, storage_directory: str) -> str:
     """

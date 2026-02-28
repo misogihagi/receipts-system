@@ -2,16 +2,17 @@ import requests
 import os
 import logging
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 class OCRProcessor:
     def __init__(self, paperless_url, api_token, ocr_language="eng"):
         self.paperless_url = paperless_url
         self.api_token = api_token
         self.ocr_language = ocr_language
-        self.headers = {
-            "Authorization": f"Token {self.api_token}"
-        }
+        self.headers = {"Authorization": f"Token {self.api_token}"}
 
     def process_document(self, image_path):
         """Processes a document using the Paperless-ngx API."""
@@ -24,12 +25,14 @@ class OCRProcessor:
                     f"{self.paperless_url}/api/documents/post/",
                     headers=self.headers,
                     files=files,
-                    data=data
+                    data=data,
                 )
                 response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
                 response_json = response.json()
                 if "error" in response_json:
-                    logging.error(f"Error processing {image_path}: {response_json['error']}")
+                    logging.error(
+                        f"Error processing {image_path}: {response_json['error']}"
+                    )
                     return None
                 logging.info(f"Successfully uploaded {image_path} to Paperless-ngx")
                 return response_json
@@ -49,7 +52,9 @@ if __name__ == "__main__":
     ocr_language = "jpn+eng"
 
     if not paperless_url or not api_token:
-        print("Please set the PAPERLESS_URL and PAPERLESS_API_TOKEN environment variables.")
+        print(
+            "Please set the PAPERLESS_URL and PAPERLESS_API_TOKEN environment variables."
+        )
     else:
         ocr_processor = OCRProcessor(paperless_url, api_token, ocr_language)
         result = ocr_processor.process_document(image_path)

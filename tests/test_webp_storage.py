@@ -5,8 +5,8 @@ from src.services.webp_storage import store_webp_file
 from io import StringIO
 from datetime import datetime
 
-class TestWebpStorage(unittest.TestCase):
 
+class TestWebpStorage(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger("src.services.webp_storage")
         self.log_capture = StringIO()
@@ -51,5 +51,5 @@ class TestWebpStorage(unittest.TestCase):
         self.assertIsNone(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

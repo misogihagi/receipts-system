@@ -3,18 +3,23 @@ import os
 
 PAPERLESS_URL = "http://localhost:8765"
 API_TOKEN = "c448f34127ee399c04d603d91978f9095fb18823"
-FILE_PATH = "doc.png" 
+FILE_PATH = "doc.png"
 
 # --- Document Metadata ---
 # This is the data that Paperless-ngx will use to classify the document
 # For a full list of fields, refer to the Paperless-ngx API documentation
 DOCUMENT_TITLE = "2024 Receipt for New Widget"
-DOCUMENT_CORRESPONDENT_ID = 1  # Optional: Replace with the ID of the correspondent (e.g., vendor)
-DOCUMENT_DOCUMENT_TYPE_ID = 2  # Optional: Replace with the ID of the document type (e.g., Receipt)
-DOCUMENT_TAG_IDS = [5, 12]     # Optional: Replace with a list of Tag IDs to apply
+DOCUMENT_CORRESPONDENT_ID = (
+    1  # Optional: Replace with the ID of the correspondent (e.g., vendor)
+)
+DOCUMENT_DOCUMENT_TYPE_ID = (
+    2  # Optional: Replace with the ID of the document type (e.g., Receipt)
+)
+DOCUMENT_TAG_IDS = [5, 12]  # Optional: Replace with a list of Tag IDs to apply
 
 # The actual endpoint for document upload
 UPLOAD_ENDPOINT = "/api/documents/post_document/"
+
 
 def upload_document(file_path: str, url: str, token: str):
     """
@@ -25,7 +30,7 @@ def upload_document(file_path: str, url: str, token: str):
         url (str): The base URL of the Paperless-ngx instance.
         token (str): The API token for authentication.
     """
-    full_url = url.rstrip('/') + UPLOAD_ENDPOINT
+    full_url = url.rstrip("/") + UPLOAD_ENDPOINT
 
     # 1. Prepare Headers for Authentication
     headers = {
@@ -48,14 +53,14 @@ def upload_document(file_path: str, url: str, token: str):
             raise FileNotFoundError(f"File not found at: {file_path}")
 
         # Open the file in binary mode for upload
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             # The 'files' dictionary is used to handle file uploads in multipart/form-data
             # 'document': This is the name of the file field expected by the Paperless-ngx API.
-            files = {
-                'document': (os.path.basename(file_path), f, 'image/jpeg')
-            }
+            files = {"document": (os.path.basename(file_path), f, "image/jpeg")}
 
-            print(f"Attempting to upload '{DOCUMENT_TITLE}' from {file_path} to {full_url}")
+            print(
+                f"Attempting to upload '{DOCUMENT_TITLE}' from {file_path} to {full_url}"
+            )
 
             # 4. Make the POST request
             # requests will automatically encode the 'metadata_fields' into the multipart body
@@ -65,11 +70,11 @@ def upload_document(file_path: str, url: str, token: str):
                 headers=headers,
                 data=metadata_fields,
                 files=files,
-                timeout=30  # Set a timeout for the request
+                timeout=30,  # Set a timeout for the request
             )
 
         # 5. Handle the Response
-        response.raise_for_status() # Raises an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
 
         # Success handling
         if response.status_code == 200 or response.status_code == 201:

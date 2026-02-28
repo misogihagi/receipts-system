@@ -4,11 +4,12 @@ import logging
 from src.services.image_converter import convert_tiff_to_png
 from io import StringIO
 
-class TestImageConverter(unittest.TestCase):
 
+class TestImageConverter(unittest.TestCase):
     def test_convert_tiff_to_png_success(self):
         # Create a dummy TIFF file for testing
         from PIL import Image
+
         # Create a dummy TIFF file for testing
         image = Image.new("RGB", (100, 100), color="white")
         image.save("test.tiff", "TIFF")
@@ -38,7 +39,7 @@ class TestImageConverter(unittest.TestCase):
             f.write("Invalid TIFF data")
 
         # Capture the log output
-        with self.assertLogs(level='ERROR') as cm:
+        with self.assertLogs(level="ERROR") as cm:
             # Attempt to convert the invalid TIFF file to PNG
             result = convert_tiff_to_png("test.tiff", "test.png")
 
@@ -46,10 +47,14 @@ class TestImageConverter(unittest.TestCase):
             self.assertFalse(result)
 
             # Assert that the correct logging message was written
-            self.assertEqual(cm.output, ["ERROR:root:Invalid file format or corrupted image data: test.tiff"])
+            self.assertEqual(
+                cm.output,
+                ["ERROR:root:Invalid file format or corrupted image data: test.tiff"],
+            )
 
         # Clean up the test file
         os.remove("test.tiff")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

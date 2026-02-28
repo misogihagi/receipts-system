@@ -4,9 +4,9 @@ from unittest.mock import patch
 import requests
 from src.services.ocr_processor import OCRProcessor
 
-class TestOCRProcessor(unittest.TestCase):
 
-    @patch('requests.post')
+class TestOCRProcessor(unittest.TestCase):
+    @patch("requests.post")
     def test_process_document_success(self, mock_post):
         # Configure the mock to return a successful response
         mock_post.return_value.status_code = 200
@@ -17,7 +17,9 @@ class TestOCRProcessor(unittest.TestCase):
             f.write("Dummy PNG data")
 
         # Create an OCRProcessor instance
-        ocr_processor = OCRProcessor("http://paperless.example.com", "test_api_token", ocr_language="jpn+eng")
+        ocr_processor = OCRProcessor(
+            "http://paperless.example.com", "test_api_token", ocr_language="jpn+eng"
+        )
 
         # Process the document
         result = ocr_processor.process_document("test.png")
@@ -28,10 +30,12 @@ class TestOCRProcessor(unittest.TestCase):
         # Clean up the created files
         os.remove("test.png")
 
-    @patch('requests.post')
+    @patch("requests.post")
     def test_process_document_failure_file_not_found(self, mock_post):
         # Create an OCRProcessor instance
-        ocr_processor = OCRProcessor("http://paperless.example.com", "test_api_token", ocr_language="jpn+eng")
+        ocr_processor = OCRProcessor(
+            "http://paperless.example.com", "test_api_token", ocr_language="jpn+eng"
+        )
 
         # Process the document
         result = ocr_processor.process_document("non_existent.png")
@@ -39,7 +43,7 @@ class TestOCRProcessor(unittest.TestCase):
         # Assert that the request failed
         self.assertIsNone(result)
 
-    @patch('requests.post')
+    @patch("requests.post")
     def test_process_document_failure_ocr_error(self, mock_post):
         # Configure the mock to return a successful response with an error message
         mock_post.return_value.status_code = 200
@@ -50,7 +54,9 @@ class TestOCRProcessor(unittest.TestCase):
             f.write("Dummy PNG data")
 
         # Create an OCRProcessor instance
-        ocr_processor = OCRProcessor("http://paperless.example.com", "test_api_token", ocr_language="jpn+eng")
+        ocr_processor = OCRProcessor(
+            "http://paperless.example.com", "test_api_token", ocr_language="jpn+eng"
+        )
 
         # Process the document
         result = ocr_processor.process_document("test.png")
@@ -59,6 +65,5 @@ class TestOCRProcessor(unittest.TestCase):
         self.assertIsNone(result)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

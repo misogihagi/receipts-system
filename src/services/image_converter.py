@@ -2,7 +2,10 @@ from PIL import Image, UnidentifiedImageError
 import logging
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def convert_tiff_to_png(tiff_filepath: str, png_filepath: str) -> bool:
     """

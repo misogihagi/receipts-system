@@ -4,6 +4,7 @@ from src.services.image_conversion import ImageConversionService
 from PIL import Image
 import numpy as np
 
+
 def create_minimal_tiff(filename="empty_image.tif", width=1, height=1):
     """
     Creates a minimal, all-black TIFF file using Pillow.
@@ -14,8 +15,8 @@ def create_minimal_tiff(filename="empty_image.tif", width=1, height=1):
         height (int): The height of the minimal image in pixels.
     """
     data = np.zeros((height, width), dtype=np.uint8)
-    img = Image.fromarray(data, mode='L')
-    img.save(filename, format='TIFF')
+    img = Image.fromarray(data, mode="L")
+    img.save(filename, format="TIFF")
 
 
 def test_convert_tiff_to_png():
