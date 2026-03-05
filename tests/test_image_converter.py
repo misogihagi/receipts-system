@@ -1,8 +1,7 @@
-import unittest
 import os
-import logging
+import unittest
+
 from src.services.image_converter import convert_tiff_to_png
-from io import StringIO
 
 
 class TestImageConverter(unittest.TestCase):

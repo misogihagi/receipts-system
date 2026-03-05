@@ -1,6 +1,6 @@
-from PIL import Image, UnidentifiedImageError
 import logging
 
+from PIL import Image, UnidentifiedImageError
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

@@ -1,5 +1,6 @@
-import requests
 import os
+
+import requests
 
 PAPERLESS_URL = "http://localhost:8765"
 API_TOKEN = "c448f34127ee399c04d603d91978f9095fb18823"

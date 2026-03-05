@@ -1,8 +1,9 @@
-import pytest
 import os
-from src.services.image_conversion import ImageConversionService
-from PIL import Image
+
 import numpy as np
+from PIL import Image
+
+from src.services.image_conversion import ImageConversionService
 
 
 def create_minimal_tiff(filename="empty_image.tif", width=1, height=1):
