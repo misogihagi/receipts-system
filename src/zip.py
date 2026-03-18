@@ -4,11 +4,8 @@ import zipfile
 import shutil
 import hashlib
 import base64
-import requests
 import yaml
 import fitz
-import json
-import numpy as np
 import torch
 from transformers import pipeline
 

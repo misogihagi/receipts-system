@@ -1,7 +1,7 @@
-import unittest
 import os
+import unittest
 from unittest.mock import patch
-import requests
+
 from src.services.ocr_processor import OCRProcessor
 
 

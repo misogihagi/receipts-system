@@ -1,9 +1,9 @@
-import unittest
-import os
 import logging
-from src.services.webp_storage import store_webp_file
+import os
+import unittest
 from io import StringIO
-from datetime import datetime
+
+from src.services.webp_storage import store_webp_file
 
 
 class TestWebpStorage(unittest.TestCase):
