@@ -15,10 +15,18 @@ from datetime import datetime
 from pathlib import Path
 from paddleocr import PaddleOCR
 
-# --- 設定 ---
-IMAGE_DIR = Path("images")
-TEMP_DIR = Path("temp")
-STATUS_FILE = Path("status.yaml")
+IMAGE_DIR = Path("data/images")
+TEMP_DIR = Path("data/temp")
+OUTPUT_DIR = Path("data/docker/media/documents")
+ARCHIVE_DIR = OUTPUT_DIR / Path("archive")
+ORIGINAL_DIR = OUTPUT_DIR / Path("originals")
+THUMBNAIL_DIR = OUTPUT_DIR / Path("thumbnails")
+STATUS_FILE = Path("data/status.yaml")
+
+DATABASE_URI = "sqlite:///data/docker/data/db.sqlite3"
+OWNER_ID = 3
+
+Base = declarative_base()
 
 
 def preprocess():
