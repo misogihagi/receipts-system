@@ -19,3 +19,8 @@ dev = [
     "pytest>=9.0.1",
     "ruff>=0.15.1",
 ]
+
+[tools.ruff.lint]
+select = [
+    "I"
+]
