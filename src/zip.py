@@ -11,9 +11,13 @@ import json
 import numpy as np
 import torch
 from transformers import pipeline
-from datetime import datetime
+
+from datetime import date, datetime
 from pathlib import Path
 from paddleocr import PaddleOCR
+from PIL import Image
+from sqlalchemy import Column, Date, DateTime, Integer, String, Text, create_engine
+from sqlalchemy.orm import Session, declarative_base
 
 IMAGE_DIR = Path("data/images")
 TEMP_DIR = Path("data/temp")
@@ -27,6 +31,33 @@ DATABASE_URI = "sqlite:///data/docker/data/db.sqlite3"
 OWNER_ID = 3
 
 Base = declarative_base()
+
+
+class Document(Base):
+    __tablename__ = "documents_document"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(128), nullable=False)
+    content = Column(Text, nullable=False)
+    modified = Column(DateTime, nullable=False)
+    correspondent_id = Column(Integer, nullable=True)
+    checksum = Column(String(32), nullable=False, unique=True)
+    added = Column(DateTime, nullable=False)
+    storage_type = Column(String(11), nullable=False)
+    filename = Column(String(1024), unique=True)
+    archive_serial_number = Column(Integer, unique=True)
+    document_type_id = Column(Integer, nullable=True)
+    mime_type = Column(String(256), nullable=False)
+    archive_checksum = Column(String(32))
+    archive_filename = Column(String(1024), unique=True)
+    storage_path_id = Column(Integer, nullable=True)
+    original_filename = Column(String(1024))
+    owner_id = Column(Integer, nullable=True)
+    deleted_at = Column(DateTime, nullable=True)
+    restored_at = Column(DateTime, nullable=True)
+    transaction_id = Column(String(32))
+    page_count = Column(Integer)
+    created = Column(Date, nullable=False)
 
 
 def preprocess():
@@ -56,9 +87,11 @@ def save_status(status_data):
     with open(STATUS_FILE, "w", encoding="utf-8") as f:
         yaml.dump(status_data, f, allow_unicode=True, sort_keys=False)
 
+
 def ocr(img_file):
     ocr = PaddleOCR(lang="japan")
     return ocr.predict(img_file)
+
 
 def create_pdf(data, image_path, pdf_path):
     polygons = data["rec_boxes"]
@@ -157,6 +190,110 @@ def predict_date(content):
             pass
 
 
+def calculate_checksum(file_path):
+    with open(file_path, "rb") as f:
+        return hashlib.md5(f.read()).hexdigest()
+
+
+def insert_database(
+    title,
+    content,
+    checksum,
+    filename,
+    archive_checksum,
+    archive_filename,
+    original_filename,
+    created,
+):
+    engine = create_engine(DATABASE_URI)
+    with Session(engine) as session:
+        new_doc = Document(
+            title=title,
+            content=content,
+            modified=datetime.now(),
+            checksum=checksum,
+            added=datetime.now(),
+            storage_type="unencrypted",
+            filename=filename,
+            mime_type="image/webp",
+            archive_checksum=archive_checksum,
+            archive_filename=archive_filename,
+            original_filename=original_filename,
+            owner_id=OWNER_ID,
+            created=created,
+        )
+        session.add(new_doc)
+        session.commit()
+        return new_doc.id
+
+
+def process_image(img_file):
+    with Image.open(img_file) as original_img:
+        # 現在のサイズを取得
+        width, height = original_img.size
+
+        # サイズを半分に計算（整数にする必要があるため // 2）
+        new_size = (width // 2, height // 2)
+
+        # PaddleOCRは4000以上はリサイズされるので予めしておく
+        # Resized image size (5104x7016) exceeds max_side_limit of 4000. Resizing to fit within limit.
+        # リサイズ（Image.LANCZOSは高品質な補完アルゴリズムです）
+        img = original_img.resize(new_size, Image.LANCZOS)
+
+        hash = get_file_hash(img_file)
+
+        # WebP形式で保存
+        # qualityは0-100で指定可能（デフォルトは80程度）
+        webp_file = Path(str(ORIGINAL_DIR) + "/" + hash + ".webp")
+        img.save(str(webp_file), "WEBP", quality=80)
+
+        # PaddleOCRはTIFFを読めないのでPNG形式に変換
+        png_file = Path(str(TEMP_DIR) + "/" + hash + ".png")
+
+        img.save(str(png_file), format="PNG")
+
+        # RGBAの場合はRGBに変換（透過を白背景にする）
+        jpeg_file = Path(str(TEMP_DIR) + "/" + hash + ".jpeg")
+        if img.mode == "RGBA":
+            img = img.convert("RGB")
+        img.save(str(jpeg_file), "JPEG", quality=95)
+
+    result = ocr(str(png_file))
+
+    res = result[0]
+
+    pdf_file = Path(str(ARCHIVE_DIR) + "/" + hash + ".pdf")
+    create_pdf(res, str(jpeg_file), str(pdf_file))
+
+    content = "\n".join(res["rec_texts"])
+    title = generate_title(content)
+    created = predict_date(content) or date.today()
+    checksum = calculate_checksum(webp_file)
+    archive_checksum = calculate_checksum(pdf_file)
+    original_filename = img_file.name
+    doc_id = insert_database(
+        title,
+        content,
+        checksum,
+        webp_file.name,
+        archive_checksum,
+        pdf_file.name,
+        original_filename,
+        created,
+    )
+    with Image.open(img_file) as original_img:
+        # サムネイルの生成
+        thumbnail_file = Path(str(THUMBNAIL_DIR) + "/" + str(doc_id).zfill(7) + ".webp")
+        # 横が500ピクセルになるようリサイズ
+        width_size = 500
+        height_size = int((float(img.size[1]) * float(width_size / img.size[0])))
+        resized_img = img.resize((width_size, height_size), Image.LANCZOS)
+        resized_img.save(str(thumbnail_file), "WEBP", quality=80)
+
+    os.remove(png_file)
+    os.remove(jpeg_file)
+
+
 def process_zip():
     status_data = load_status()
     zip_files = list(IMAGE_DIR.glob("*.zip"))
@@ -178,17 +315,17 @@ def process_zip():
             image_payloads = []
             for img_file in extract_path.rglob("*"):
                 if img_file.suffix.lower() in [".tif", ".TIF"]:
-                    print(img_file)
                     img_hash = get_file_hash(img_file)
 
                     with open(img_file, "rb") as f:
                         encoded_string = base64.b64encode(f.read()).decode("utf-8")
 
+                    process_image(img_file)
+
                     image_payloads.append(
                         {
                             "hash": img_hash,
-                            "filename": img_file.name,
-                            "data": encoded_string,
+                            "filename": date.fromisoformat("2026-02-13"),
                         }
                     )
 
