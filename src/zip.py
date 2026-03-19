@@ -15,6 +15,7 @@ from paddleocr import PaddleOCR
 from PIL import Image
 from sqlalchemy import Column, Date, DateTime, Integer, String, Text, create_engine
 from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy.exc import IntegrityError
 
 IMAGE_DIR = Path("data/images")
 TEMP_DIR = Path("data/temp")
@@ -220,9 +221,15 @@ def insert_database(
             created=created,
         )
         session.add(new_doc)
-        session.commit()
-        return new_doc.id
-
+        try:
+            session.commit()
+            return new_doc.id
+        except IntegrityError as e:
+            if "UNIQUE constraint failed: documents_document.archive_filename" in str(e):
+                print(f"Warning: Duplicate archive_filename encountered. Skipping insertion for {archive_filename}")
+                session.rollback()
+                return None
+            raise e
 
 def process_image(img_file):
     with Image.open(img_file) as original_img:
@@ -278,14 +285,15 @@ def process_image(img_file):
         original_filename,
         created,
     )
-    with Image.open(img_file) as original_img:
-        # サムネイルの生成
-        thumbnail_file = Path(str(THUMBNAIL_DIR) + "/" + str(doc_id).zfill(7) + ".webp")
-        # 横が500ピクセルになるようリサイズ
-        width_size = 500
-        height_size = int((float(img.size[1]) * float(width_size / img.size[0])))
-        resized_img = img.resize((width_size, height_size), Image.LANCZOS)
-        resized_img.save(str(thumbnail_file), "WEBP", quality=80)
+    if doc_id is not None:
+        with Image.open(img_file) as original_img:
+            # サムネイルの生成
+            thumbnail_file = Path(str(THUMBNAIL_DIR) + "/" + str(doc_id).zfill(7) + ".webp")
+            # 横が500ピクセルになるようリサイズ
+            width_size = 500
+            height_size = int((float(img.size[1]) * float(width_size / img.size[0])))
+            resized_img = img.resize((width_size, height_size), Image.LANCZOS)
+            resized_img.save(str(thumbnail_file), "WEBP", quality=80)
 
     os.remove(png_file)
     os.remove(jpeg_file)
