@@ -271,7 +271,7 @@ def process_image(img_file):
 
     content = "\n".join(res["rec_texts"])
     title = generate_title(content)
-    created = predict_date(content) or date.today()
+    created = predict_date(content) or date(1970, 1, 1) # 見つからなかった場合はUNIXの起点日
     checksum = calculate_checksum(webp_file)
     archive_checksum = calculate_checksum(pdf_file)
     original_filename = img_file.name
